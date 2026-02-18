@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Biblia Mea</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#6c5ce7" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app-container">
+      <header><h1 id="main-title">Versetul Zilei</h1></header>
+      <main id="content"></main>
+      <nav class="bottom-nav">
+        <button onclick="navigare('verset')">✨<span>Verset</span></button>
+        <button onclick="navigare('biblie')">📖<span>Biblia</span></button>
+        <button onclick="navigare('quiz')">❓<span>Quiz</span></button>
+      </nav>
+    </div>
+
+    <script>
+      // Dicționar ID-uri oficiale pentru serverul Bolls Life (ARMNN - Cornilescu)
+      const bibleIds = {
+        geneza: 1,
+        exodul: 2,
+        leviticul: 3,
+        numeri: 4,
+        deuteronomul: 5,
+        iosua: 6,
+        judecatori: 7,
+        rut: 8,
+        "1 samuel": 9,
+        "2 samuel": 10,
+        "1 regi": 11,
+        "2 regi": 12,
+        "1 cronici": 13,
+        "2 cronici": 14,
+        ezra: 15,
+        neemia: 16,
+        estera: 17,
+        iov: 18,
+        psalmii: 19,
+        proverbele: 20,
+        eclesiastul: 21,
+        "cantarea cantarilor": 22,
+        isaia: 23,
+        ieremia: 24,
+        plangerile: 25,
+        ezechiel: 26,
+        daniel: 27,
+        osea: 28,
+        ioel: 29,
+        amos: 30,
+        obadia: 31,
+        iona: 32,
+        mica: 33,
+        naum: 34,
+        ahacuc: 35,
+        tefania: 36,
+        hagai: 37,
+        zaharia: 38,
+        maleahi: 39,
+        matei: 40,
+        marcu: 41,
+        luca: 42,
+        ioan: 43,
+        faptele: 44,
+        romani: 45,
+        "1 corinteni": 46,
+        "2 corinteni": 47,
+        galateni: 48,
+        efeseni: 49,
+        filipeni: 50,
+        coloseni: 51,
+        "1 tesaloniceni": 52,
+        "2 tesaloniceni": 53,
+        "1 timotei": 54,
+        "2 timotei": 55,
+        tit: 56,
+        filimon: 57,
+        evrei: 58,
+        iacov: 59,
+        "1 petru": 60,
+        "2 petru": 61,
+        "1 ioan": 62,
+        "2 ioan": 63,
+        "3 ioan": 64,
+        iuda: 65,
+        apocalipsa: 66,
+      };
+
+      let carteActiva = "";
+      let capActiv = 1;
+
+      function navigare(s) {
+        const content = document.getElementById("content");
+        const titlu = document.getElementById("main-title");
+        if (!content || !titlu) return;
+
+        if (s === "verset") {
+          titlu.innerText = "Versetul Zilei";
+          const vList = [
+            {
+              t: "Pot totul în Hristos care mă întărește.",
+              r: "Filipeni 4:13",
+            },
+            {
+              t: "Domnul este Păstorul meu: nu voi duce lipsă de nimic.",
+              r: "Psalmul 23:1",
+            },
+            { t: "Nu te teme, căci Eu sunt cu tine!", r: "Isaia 41:10" },
+          ];
+          const v = vList[Math.floor(Math.random() * vList.length)];
+          content.innerHTML = `
+                    <div class="card" style="background:#6c5ce7; color:white;">
+                        <p class="verset-text" style="font-size:1.2rem; font-weight:bold;">"${v.t}"</p>
+                        <p>- ${v.r}</p>
+                        <button onclick="navigare('verset')" style="margin-top:15px; padding:12px 25px; border-radius:12px; border:none; background:white; color:#6c5ce7; font-weight:bold; cursor:pointer;">Altul ✨</button>
+                    </div>`;
+        } else if (s === "biblie") {
+          titlu.innerText = "Biblia";
+          content.innerHTML = `
+                    <div class="card">
+                        <input type="text" id="inputBiblie" placeholder="Ex: Ioan 3 sau Geneza" style="width:100%; padding:15px; margin-bottom:12px; border-radius:12px; border:1px solid #ddd; box-sizing:border-box;">
+                        <button onclick="executaCautarea()" style="width:100%; background:#6c5ce7; color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer;">CĂUTARE 📖</button>
+                        <div id="zona-rezultat" style="margin-top:20px; text-align:left;"></div>
+                    </div>`;
+        } else {
+          titlu.innerText = "Quiz Biblic";
+          content.innerHTML =
+            '<div class="card"><h3>Cine a construit corabia?</h3><button class="quiz-option" onclick="alert(\'Corect!\')">Noe</button></div>';
+        }
+      }
+
+      async function executaCautarea(capSarit = null) {
+        const rezultatDiv = document.getElementById("zona-rezultat");
+        const input = document.getElementById("inputBiblie");
+        let valoareRaw = input ? input.value.trim().toLowerCase() : "";
+
+        if (!valoareRaw && !capSarit) return;
+        rezultatDiv.innerHTML = "<p>Se încarcă...</p>";
+
+        let numeRO = capSarit
+          ? carteActiva
+          : valoareRaw.replace(/[0-9]/g, "").trim();
+        let capitol = capSarit
+          ? capSarit
+          : (valoareRaw.match(/\d+/) || ["1"])[0];
+
+        carteActiva = numeRO;
+        capActiv = parseInt(capitol);
+        let bookId = bibleIds[numeRO];
+
+        if (!bookId) {
+          rezultatDiv.innerHTML = `<p style='color:red;'>Cartea "${numeRO}" nu a fost găsită.</p>`;
+          return;
+        }
+
+        try {
+          // Quick CORS proxy for testing (AllOrigins)
+          const target = `https://bolls.life/get-chapter/ARMNN/${bookId}/${capActiv}/`;
+          const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
+
+          let date = null;
+          console.debug("Search debug:", {
+            numeRO,
+            bookId,
+            capActiv,
+            target,
+            proxy,
+          });
+
+          try {
+            const raspuns = await fetch(proxy);
+            console.debug("Proxy response status:", raspuns.status);
+            if (raspuns.ok) {
+              try {
+                date = await raspuns.json();
+              } catch (parseErr) {
+                console.warn("Proxy returned non-JSON or empty body", parseErr);
+                date = null;
+              }
+            }
+          } catch (networkErr) {
+            console.warn("Proxy request failed", networkErr);
+            date = null;
+          }
+
+          // If remote returned empty or failed, try local fallback files (numeric id and name)
+          if (!date || !Array.isArray(date) || date.length === 0) {
+            const tried = [];
+            const candidates = [
+              `data/${bookId}/${capActiv}.json`,
+              `data/${numeRO}/${capActiv}.json`,
+            ];
+            for (const p of candidates) {
+              try {
+                tried.push(p);
+                const localResp = await fetch(p);
+                console.debug(
+                  "Tried local path",
+                  p,
+                  "status",
+                  localResp.status,
+                );
+                if (localResp.ok) {
+                  date = await localResp.json();
+                  if (date && date.length > 0) {
+                    // annotate UI that local fallback was used
+                    rezultatDiv.insertAdjacentHTML(
+                      "afterbegin",
+                      '<div style="color:#6c5ce7; font-weight:600;">(Folosit fallback local)</div>',
+                    );
+                    break;
+                  }
+                }
+              } catch (localErr) {
+                console.warn("Local fetch failed for", p, localErr);
+              }
+            }
+            console.debug("Local fallback tried paths:", tried);
+          }
+
+          if (date && date.length > 0) {
+            rezultatDiv.innerHTML =
+              `<h3>${numeRO} ${capActiv}</h3>` +
+              date.map((v) => `<b>${v.verse}</b> ${v.text}`).join("<br><br>");
+          } else {
+            rezultatDiv.innerHTML = "<p>Capitol negăsit.</p>";
+          }
+        } catch (e) {
+          rezultatDiv.innerHTML = "<p>Eroare de conexiune.</p>";
+        }
+      }
+
+      window.onload = () => navigare("verset");
+    </script>
+  </body>
+</html>
